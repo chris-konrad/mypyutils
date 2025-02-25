@@ -22,6 +22,8 @@ import mypyutils.log.loggerDevice
 logger = LoggerDevice()
 ```
 
+It is shares some aspects of the API and the log ouput format of the standard Cython logger 
+
 ##### Logging to File
 
 Independednt of the initialisation of the LoggerDevice object, logging to file has to be initialised separately with a call to `logger.init()`
@@ -35,7 +37,7 @@ The package is research code under development. It may contain bugs and sections
 1. Clone this repository. 
    
    ```
-   git clone  https://github.com/chrismo-schmidt/mypyutils.git
+   git clone  https://github.com/chrismo-konrad/mypyutils.git
    ```
 
 2. Install the package and it's dependencies. Refer to `pyproject.toml` for an overview of the dependencies. 

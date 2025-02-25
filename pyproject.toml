@@ -6,15 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "mypyutils"
 description = "A collection of Python helpers."
 readme = "README.md"
-version = "0.1.0"
+version = "0.1.1"
 license = {file = "LICENSE"}
 authors = [
-	{name = "Christoph M. Schmidt", email = "c.m.schmidt@tudelft.nl"}
+	{name = "Christoph M. Konrad", email = "c.m.schmidt@tudelft.nl"}
 ]
 requires-python = ">3.11"
 dependencies = [
-	"os",
 	"datetime",
+	"keyboard",
 ]
 	
 [tool.setuptools.packages.find]

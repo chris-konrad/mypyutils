@@ -2,21 +2,22 @@
 """
 Created on Mon Oct 14 08:16:50 2024
 
-A simple status logger
+A simple status logger. Inspired by the API of the Cython logger. 
+(https://docs.python.org/3/library/logging.html)
 
-@author: Christoph M. Schmidt
+@author: Christoph M. Konrad
 """
 
 import os
 from datetime import datetime, timezone, tzinfo
 
-class LogfileNotAvailabelException(Exception):
+class LogfileNotAvailableException(Exception):
     """ An execption thrown if the log file is not availe"""
     pass
 
 class LoggerDevice:
     """ A simple logger device for logging informtion, warning and critical messages to outline and
-    to file
+    to file. 
     """
     
     TS_FORMAT = '%Y%m%d_%H%M%S'
@@ -36,8 +37,15 @@ class LoggerDevice:
         self.timezone = None
         self.to_file = False
         self.to_outline = True
+        self.no_timestamps = False,
+        self.no_messagetypes = False
         
-    def init(self, to_outline=True, dir_out=None, filetag="log", timezone=None):
+    def init(self, to_outline=True, dir_out=None, 
+             filetag="log", 
+             timezone=None, 
+             ignore_write_errors=False,
+             no_timestamps=False,
+             no_messagetypes=False):
         """
         Initialize the logger device. This must be called to enable logging to file. Logging
         to outline works without calling logger.init()
@@ -66,9 +74,13 @@ class LoggerDevice:
         #init logging to outline
         self.to_outline = to_outline
         
+        self.no_timestamps = no_timestamps
+        self.no_messagetypes = no_messagetypes
+        
         #init logging to file
         if dir_out is not None:
-            self.to_file is True
+            self.to_file = True
+            self.ignore_write_errors = ignore_write_errors
             self._init_logfile(dir_out, filetag)
    
     
@@ -109,7 +121,7 @@ class LoggerDevice:
     def _init_logfile(self, dir_out, filetag):
         """Initialize logging to file"""
         
-        assert(os.path.isdir(dir_out)), ("Can't find directory {dir_out}")
+        assert(os.path.isdir(dir_out)), (f"Can't find directory {dir_out}")
         
         
         ts = self._get_ts()
@@ -118,17 +130,23 @@ class LoggerDevice:
         self.path_logfile = os.path.join(dir_out, filename)
         
         #create file
+        
         with open(self.path_logfile, 'w') as f:
             pass
         
-        self._log('status', 'Logger initialised.')
+        self._log('stat', 'Logger initialised.')
 
     
     def _log(self, msg_type, content):
         """Log to file and/or outline"""
         
-        content = content[0].upper() + content[1:]
+        content = str(content)
+        try:
+            content = content[0].upper() + content[1:]
+        except IndexError:
+            pass
         content = self._add_punctuation(content)
+        
         
         #make message
         msg = self._mkmsg(msg_type, content)
@@ -139,20 +157,39 @@ class LoggerDevice:
         
         #write log to file
         if self.to_file:
-            self.logfile_is_ready()
-            with open(self.path_logfile, 'a') as f:
-                f.write(msg)
+            if self.ignore_write_errors:
+                try:
+                    with open(self.path_logfile, 'a') as f:
+                        f.write(msg+'\n')
+                except Exception:
+                    pass
+            else:
+                self.logfile_is_ready()
+                with open(self.path_logfile, 'a') as f:
+                    f.write(msg+'\n')
     
     def _add_punctuation(self, msg):
         """ Force punctuation of a message. """
-        if not msg[-1] in ('.', '!', '?', ';', ';'):
-            msg = msg + '.'
+        try:
+            if not msg[-1] in ('.', '!', '?', ';', ';'):
+                msg = msg + '.'
+        except IndexError:
+            pass
             
         return msg
     
     def _mkmsg(self, msg_type, content):
         """ Put a message together """
-        return f"{self._get_ts()}{LoggerDevice.COL_SEP}{msg_type.upper()}{LoggerDevice.COL_SEP}{content}"
+        
+        msg = ""
+        if not self.no_timestamps:
+            msg += f"{self._get_ts()}{LoggerDevice.COL_SEP}"
+        if not self.no_messagetypes:
+            msg += f"{msg_type.upper()}{LoggerDevice.COL_SEP}"
+        
+        msg += content
+        
+        return msg
         
     
     def _get_ts(self):
@@ -164,15 +201,16 @@ class LoggerDevice:
         
         if tz is None:
             self.timezone = None
-        if tz == 'UTC':
+        elif tz == 'UTC':
             self.tz = timezone.utc
-        if isinstance(tz, tzinfo):
+        elif isinstance(tz, tzinfo):
             self.timezone = tz
-            
-        msg = (f"The timezone parameter must be either None (local time), 'UTC', or an object of"
-               f"a datetime.tzinfo subclass. Instead it was type <{type(tz)}> with value {tz}")
+        else:  
+            msg = (f"The timezone parameter must be either None (local time), 'UTC', or an object "
+                   f"of a datetime.tzinfo subclass. Instead it was type <{type(tz)}> with value "
+                   f"{tz}")
         
-        raise ValueError(msg)    
+            raise ValueError(msg)    
         
     
     def logfile_is_ready(self):
@@ -188,12 +226,12 @@ class LoggerDevice:
         if self.path_logfile is None:
             msg = (f"The logger has not been initialized for logging to file. Call logger.init() "
                    f"and provide an output directory!")
-            raise LogfileNotAvailabelException(msg)
+            raise LogfileNotAvailableException(msg)
             
         if not os.path.isfile(self.path_logfile):
             msg = (f"The logfile does not exist or is not reachable after it was initialized. Can't"
                    f" find {self.path_logfile}")
-            raise LogfileNotAvailabelException(msg)
+            raise LogfileNotAvailableException(msg)
                   
             
 # --------------------------------------------------------------------------------------------------
