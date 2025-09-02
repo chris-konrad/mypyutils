@@ -5,6 +5,7 @@ Created on Mon Oct 14 10:17:32 2024
 @author: Christoph M. Konrad
 """
 import os
+import yaml
 import keyboard
 import numpy as np
 
@@ -71,6 +72,31 @@ def fileparts(path):
     return directory, filename, filetype
                 
             
+def read_yaml(filepath):
+    """
+    Read a yaml config file and return config.
+
+    Parameters
+    ----------
+    filepath : str
+        The path of the yaml config file.
+
+    Returns
+    -------
+    config : dict
+        (Nested) dictionary of the configration.
+    """
+    
+    #check path
+    if not os.path.isfile(filepath):
+        raise ValueError(f"Not a file: {filepath}")
+    if not filepath[-5:] == ".yaml":
+        raise ValueError(f"Not a .yaml file: {filepath}")
+        
+    with open(filepath, "r") as f:
+        config = yaml.safe_load(f)
+
+    return config
 
                 
         

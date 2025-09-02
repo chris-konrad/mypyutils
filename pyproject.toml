@@ -15,6 +15,7 @@ requires-python = ">3.11"
 dependencies = [
 	"datetime",
 	"keyboard",
+	"pyyaml",
 ]
 	
 [tool.setuptools.packages.find]
