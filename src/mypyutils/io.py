@@ -88,16 +88,130 @@ def read_yaml(filepath):
     """
     
     #check path
-    if not os.path.isfile(filepath):
-        raise ValueError(f"Not a file: {filepath}")
-    if not filepath[-5:] == ".yaml":
-        raise ValueError(f"Not a .yaml file: {filepath}")
+    filepath = verify_existing_filepath(filepath, ['.yaml', '.yml'])
         
     with open(filepath, "r") as f:
         config = yaml.safe_load(f)
 
     return config
 
+
+def write_yaml(filepath, dict):
+    """
+    Write a yaml config file from dict.
+
+    Caution! Should not contain complex datatypes.
+
+    Parameters
+    ----------
+    filepath : str
+        The path of the yaml config file.
+    dict : dict
+        The dictionary to store as yaml file.
+    """    
+
+    filepath = verify_new_filepath(filepath, ['.yaml', 'yml'])
+
+    # write 
+    with open(filepath, 'w') as f:
+        yaml.dump(dict, f)          
+
+
+def verify_existing_filepath(filepath, permitted_filetypes):
+    """ Check that filepath is of the permitted type.
+    Check if the directory and file exists.
+
+    Accepts filepaths like:
+    //path//to//file//filename.filetype
+
+    where filetype is any of permitted_filetypes. 
+    
+    Parameters
+    ----------
+    filepath : str
+        Filepath to check
+    permitted_filetypes : list
+        List of permitted filetypes. 
+
+    Returns
+    -------
+    filepath : str
+        Unmodified filepath
+    """
+    
+    # create output directory if necessary
+    dir, filename, filetype = fileparts(filepath)
+
+    # check if directory exists
+    if not os.path.isdir(dir):
+        raise FileNotFoundError(f"Directory {dir} not found!")
+    
+    # check if filename is provided
+    if filename == '':
+        raise ValueError(f"Filepath '{filepath}' does not include a filename!")
+    
+    # check filetype
+    if filetype not in permitted_filetypes:
+        raise ValueError((f"Filetype must be any of {permitted_filetypes}! "
+                          f"Instead filepath '{filepath}' has type {filetype}."))
+
+    # check if file exists
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError(f"File {dir} does not found!")
+
+    return filepath
+
+
+def verify_new_filepath(filepath, permitted_filetypes, makedir=True):
+    """ Check that filepath is of the permitted type. Appends filetype
+    if filetype is missing. Check if the directory exists and create 
+    directory if requested.
+
+    Accepts filepaths like:
+    //path//to//file//filename.filetype
+
+    where filetype is any of permitted_filetypes. 
+    
+    Parameters
+    ----------
+    filepath : str
+        Filepath to check
+    permitted_filetypes : list
+        List of permitted filetypes. If filepath does not specify a 
+        filetype, the first filetype from the list will be appended. 
+    makedir : bool, optional
+        Make a new directory if the specified directory does not exist.
+        Default is True.
+
+    Returns
+    -------
+    filepath : str
+        Verified file path.    
+    """
+    
+    # create output directory if necessary
+    dir, filename, filetype = fileparts(filepath)
+    if not os.path.isdir(dir):
+        if makedir:
+            os.makedirs(dir)
+        else:
+            msg = (f"Directory {dir} does not exist! Set makedir=True "
+                   f"to automatically create a new directory with this name.")
+            raise FileNotFoundError(msg)
+
+    # check if filename is provided
+    if filename == '':
+        raise ValueError(f"Filepath '{filepath}' does not include a filename!")
+
+    # check filetype
+    if filetype == '':
+        filetype = permitted_filetypes[0]
+
+    if filetype not in permitted_filetypes:
+        raise ValueError((f"Filetype must be any of {permitted_filetypes}! "
+                          f"Instead filepath '{filepath}' has type {filetype}."))
+
+    return os.path.join(dir, filename+filetype)
                 
         
         
