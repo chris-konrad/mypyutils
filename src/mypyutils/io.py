@@ -143,8 +143,9 @@ def verify_existing_filepath(filepath, permitted_filetypes):
     dir, filename, filetype = fileparts(filepath)
 
     # check if directory exists
-    if not os.path.isdir(dir):
-        raise FileNotFoundError(f"Directory {dir} not found!")
+    if dir != "":
+        if not os.path.isdir(dir):
+            raise FileNotFoundError(f"Directory {dir} not found!")
     
     # check if filename is provided
     if filename == '':
