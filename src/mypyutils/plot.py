@@ -18,6 +18,8 @@ def subplots_from_aspect(n_plots, aspect=1.78, **kwargs):
         Number of plots. The resulting grid will fit at least this number.
     aspect : float, optional
         The ratio of columns to rows, i.e. aspect = ncols/nrows. The default is 16:9.
+    kwargs : 
+        Any keyword arguments of plt.subplots()
 
     Returns
     -------
