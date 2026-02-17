@@ -100,8 +100,6 @@ def write_yaml(filepath, dict):
     """
     Write a yaml config file from dict.
 
-    Caution! Should not contain complex datatypes.
-
     Parameters
     ----------
     filepath : str
@@ -109,6 +107,8 @@ def write_yaml(filepath, dict):
     dict : dict
         The dictionary to store as yaml file.
     """    
+
+    dict = to_primitives(dict)
 
     filepath = verify_new_filepath(filepath, ['.yaml', 'yml'])
 
@@ -213,7 +213,49 @@ def verify_new_filepath(filepath, permitted_filetypes, makedir=True):
                           f"Instead filepath '{filepath}' has type {filetype}."))
 
     return os.path.join(dir, filename+filetype)
-                
+                   
         
-        
-        
+def to_primitives(obj):
+    """
+    Convert objects into primitives that nicely print to yaml. 
+
+    Handles, numpy and pandas objects, even if nested in containers. 
+    """
+
+    # Allowed primitives
+    if isinstance(obj, (int, float, str)):
+        return obj
+
+    # Containers: recurse into contents
+    if isinstance(obj, list):
+        return [to_primitives(x) for x in obj]
+
+    if isinstance(obj, tuple):
+        return tuple(to_primitives(x) for x in obj)
+
+    if isinstance(obj, set):
+        return {to_primitives(x) for x in obj}
+
+    if isinstance(obj, dict):
+        return {to_primitives(k): to_primitives(v) for k, v in obj.items()}
+
+    # NumPy
+    try:
+        import numpy as np
+        if isinstance(obj, np.generic):
+            return obj.item()
+        if isinstance(obj, np.ndarray):
+            return [to_primitives(x) for x in obj.tolist()]
+    except ImportError:
+        pass
+
+    # Pandas 
+    try:
+        import pandas as pd
+        if isinstance(obj, (pd.Series, pd.DataFrame)):
+            return to_primitives(obj.to_dict())
+    except ImportError:
+        pass
+
+    # If unknown, convert to string
+    return str(obj)
