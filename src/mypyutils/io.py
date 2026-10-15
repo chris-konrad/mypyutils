@@ -158,7 +158,7 @@ def verify_existing_filepath(filepath, permitted_filetypes):
 
     # check if file exists
     if not os.path.isfile(filepath):
-        raise FileNotFoundError(f"File {dir} does not found!")
+        raise FileNotFoundError(f"File {filepath} does not exist!")
 
     return filepath
 
