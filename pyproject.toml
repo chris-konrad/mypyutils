@@ -6,13 +6,14 @@ build-backend = "setuptools.build_meta"
 name = "mypyutils"
 description = "A collection of Python helpers."
 readme = "README.md"
-version = "1.0.0"
+version = "1.1.0"
 license = {file = "LICENSE"}
 authors = [
 	{name = "Christoph M. Konrad", email = "c.m.konrad@tudelft.nl"}
 ]
 requires-python = ">3.11"
 dependencies = [
+	"matplotlib",
 	"datetime",
 	"keyboard",
 	"pyyaml",
